@@ -211,7 +211,7 @@ def elevation_vs_angle(
     relative_vertical_offset: float,
     n_angles_samples: int = 100,
     max_angle: float = 50,
-    relative_distance: float = 0.35
+    min_relative_distance: float = 0.35
 ) -> np.ndarray:
     """
     outputs the maximum relative elevation along multiple lines forming
@@ -228,7 +228,7 @@ def elevation_vs_angle(
         number of lines to draw, by default 10.
     max_angle : float, optional
         maximum angle to go to, by default 50.
-    relative_distance : float, optional
+    min_relative_distance : float, optional
         exclude points that are too close to the pertubation to avoid
         messing the plot, by default 0.35
 
@@ -249,7 +249,7 @@ def elevation_vs_angle(
             int(image_width / 2), int(image_height * relative_vertical_offset)
         )
         for _, x_img, y_img in generator:
-            if y_img > relative_distance * image_height:
+            if y_img > min_relative_distance * image_height:
                 z = simulation_result[y_img, x_img]
                 line_elevation.append(abs(z))
 
@@ -268,7 +268,8 @@ def draw_diagonals(
     simulation_result: np.ndarray,
     relative_vertical_offset: float,
     nbr_of_lines: int = 10,
-    max_angle: float = 50
+    max_angle: float = 50,
+    min_relative_distance: float = 0.35
 ) -> np.ndarray:
     """
     draw the diagonal lines along which are computed the "elevation vs
@@ -284,6 +285,9 @@ def draw_diagonals(
         number of lines to draw, by default 10.
     max_angle : float, optional
         maximum angle to go to, by default 50.
+    min_relative_distance : float, optional
+        exclude points that are too close to the pertubation to avoid
+        messing the plot, by default 0.35
 
     Returns
     -------
@@ -300,7 +304,8 @@ def draw_diagonals(
             int(image_width / 2), int(image_height * relative_vertical_offset)
         )
         for _, x_img, y_img in generator:
-            simulation_result[y_img, x_img] = 1.3 * max_value
+            if y_img > min_relative_distance * image_height:
+                simulation_result[y_img, x_img] = 1.3 * max_value
 
     return simulation_result
 
