@@ -236,6 +236,24 @@ def elevation_vs_angle(
     -------
     np.ndarray
         1D-array of relative maximum elevation versus phi.
+
+    Example
+    -------
+    ```python
+    from simulation import elevation_vs_angle, linspace
+
+    froude_10_results = np.load(Path("froude=1.0.npy"))
+    relative_elevations = elevation_vs_angle(froude_10_results, relative_vertical_offset=0.05, min_relative_distance=0.2)
+
+    plt.plot(list(linspace(0, 50, 100)), relative_elevations)
+    plt.ylabel("Relative elevation")
+    plt.xlabel("phi")
+
+    plt.axvline(x = 19.47, linestyle=":", label="Kelvin angle")
+
+    plt.title("Relative elevation for a froude number of 1.0")
+    plt.show()
+    ```
     """
     image_height, image_width = simulation_result.shape[:2]
 
