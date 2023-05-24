@@ -213,43 +213,50 @@ def elevation_vs_angle(
     max_angle: float = 50,
     relative_distance: float = 0.35
 ) -> np.ndarray:
+    """
+    outputs the maximum relative elevation along multiple lines forming
+    different angles with the vertical. Corresponds to Z(phi) / Zmax,
+    with Zmax being the maximum of the simulation result.
+
+    Parameters
+    ----------
+    simulation_result : np.ndarray
+        2D-array of the simulation.
+    relative_vertical_offset : float
+        vertical origin of the perturbation.
+    n_angles_samples : int, optional
+        number of lines to draw, by default 10.
+    max_angle : float, optional
+        maximum angle to go to, by default 50.
+    relative_distance : float, optional
+        exclude points that are too close to the pertubation to avoid
+        messing the plot, by default 0.35
+
+    Returns
+    -------
+    np.ndarray
+        1D-array of relative maximum elevation versus phi.
+    """
     image_height, image_width = simulation_result.shape[:2]
 
     elevation = np.zeros(n_angles_samples)
 
     for i, phi in enumerate(linspace(0, max_angle, n_angles_samples)):
-        corrected_x = 0
-        prev_x = -1
-        corrected_y = 0
-        prev_y = -1
-
-        rho = (relative_distance - relative_vertical_offset) * image_height
         line_elevation = []
-        while corrected_x < image_width and corrected_y < image_height:
-            x, y = pol2cart(rho, np.pi / 2 - phi / 57.4)
 
-            if x != prev_x or y != prev_y:
-                corrected_x = x + int(image_width / 2)
-                corrected_y = y + int(image_height * relative_vertical_offset)
-
-                if corrected_y > relative_distance * image_height:
-                    try:
-                        z = simulation_result[corrected_y, corrected_x]
-                    except IndexError:
-                        break
-
-                    line_elevation.append(abs(z))
-
-                    prev_x = x
-                    prev_y = y
-
-            rho += 1
+        generator = polar_image_coord(
+            phi, image_width, image_height,
+            int(image_width / 2), int(image_height * relative_vertical_offset)
+        )
+        for _, x_img, y_img in generator:
+            if y_img > relative_distance * image_height:
+                z = simulation_result[y_img, x_img]
+                line_elevation.append(abs(z))
 
         if len(line_elevation) == 0:
             value_elevation = 0
         else:
             value_elevation = np.percentile(line_elevation, 95)
-
         elevation[i] = value_elevation
 
     elevation /= np.max(elevation)
@@ -263,34 +270,37 @@ def draw_diagonals(
     nbr_of_lines: int = 10,
     max_angle: float = 50
 ) -> np.ndarray:
+    """
+    draw the diagonal lines along which are computed the "elevation vs
+    angle".
+
+    Parameters
+    ----------
+    simulation_result : np.ndarray
+        2D-array of the simulation.
+    relative_vertical_offset : float
+        vertical origin of the perturbation.
+    nbr_of_lines : int, optional
+        number of lines to draw, by default 10.
+    max_angle : float, optional
+        maximum angle to go to, by default 50.
+
+    Returns
+    -------
+    np.ndarray
+        2D-array of the simulation with lines drawn onto it.
+    """
     image_height, image_width = simulation_result.shape[:2]
 
-    max_sim = np.max(simulation_result)
+    max_value = np.max(simulation_result)
 
     for phi in linspace(0, max_angle, nbr_of_lines):
-        corrected_x = 0
-        prev_x = -1
-        corrected_y = 0
-        prev_y = -1
-
-        rho = 0.35 * image_height
-        while corrected_x < image_width and corrected_y < image_height:
-            x, y = pol2cart(rho, np.pi / 2 - phi / 57.4)
-
-            if x != prev_x or y != prev_y:
-                corrected_x = x + int(image_width / 2)
-                corrected_y = y + int(image_height * relative_vertical_offset)
-
-                if corrected_y > 0.35 * image_height:
-                    try:
-                        simulation_result[corrected_y, corrected_x] = max_sim * 1.3
-                    except IndexError:
-                        break
-
-                prev_x = x
-                prev_y = y
-
-            rho += 1
+        generator = polar_image_coord(
+            phi, image_width, image_height,
+            int(image_width / 2), int(image_height * relative_vertical_offset)
+        )
+        for _, x_img, y_img in generator:
+            simulation_result[y_img, x_img] = 1.3 * max_value
 
     return simulation_result
 
@@ -306,6 +316,74 @@ def linspace(start: float, stop: float, n: int):
 
 
 def pol2cart(rho: float, phi: float) -> tuple[int, int]:
+    """
+    convert polar coordinates to cartesians.
+
+    Parameters
+    ----------
+    rho : float
+        distance
+    phi : float
+        angle
+
+    Returns
+    -------
+    tuple[int, int]
+        the x and y coordinates corresponding to the polar coordinates.
+    """
     x = int(rho * np.cos(phi))
     y = int(rho * np.sin(phi))
     return (x, y)
+
+
+def polar_image_coord(
+    phi: float,
+    image_width: int,
+    image_height: int,
+    x_origin: int,
+    y_origin: int
+):
+    """
+    generate the x and y coordinate along a line given its angle.
+
+    Parameters
+    ----------
+    phi : float
+        angle to the vertical, in degree.
+    image_width : int
+        the width of the image.
+    image_height : int
+        the height of the image.
+    x_origin : int
+        the x origin of the line.
+    y_origin : int
+        the y origin of the line.
+
+    Yields
+    ------
+    tuples[float, int, int]
+        return the value of rho, x, and y
+    """
+    x = 0
+    y = 0
+    prev_x = -1
+    prev_y = -1
+
+    rho = 0
+
+    while True:
+        x, y = pol2cart(rho, np.pi / 2 - phi / 57.4)
+
+        if (x + x_origin) >= image_width or (y + y_origin) >= image_height:
+            break
+
+        if x != prev_x or y != prev_y:
+            corrected_x = x + x_origin
+            corrected_y = y + y_origin
+
+            prev_x = x
+            prev_y = y
+
+            yield rho, corrected_x, corrected_y
+
+        rho += 1
