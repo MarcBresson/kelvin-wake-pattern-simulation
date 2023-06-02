@@ -95,9 +95,9 @@ def wake_simulation(
         2d-matrix representing the z-elevation image
     """
     parametres_combination = (image_height, image_width, max_x_tilde, max_y_tilde)
-    if sum([x is not None for x in parametres_combination]) != 1:
+    if sum([x is None for x in parametres_combination]) != 1:
         raise ValueError("exactly one of the parametres `image_height`, `image_width`,"
-                         "`x_tilde_range`, `y_tilde_range` should be None. The others"
+                         "`x_tilde_range`, `y_tilde_range` should be None. The others "
                          "must have a value.")
 
     if image_height is None:
