@@ -3,13 +3,6 @@ import tqdm
 import numpy as np
 import scipy.integrate as integ
 
-interval_Y = [0, 7]
-interval_X = [-3, 3]
-résolution_Y = 1200
-résolution_X = int(résolution_Y*(interval_X[1]-interval_X[0])/(interval_Y[1]-interval_Y[0]))
-
-Froude_a_calculer = [2]
-
 
 def pressure_field(teta, FR):
     K0_inv = (FR * cos(teta))**2
