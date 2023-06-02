@@ -27,6 +27,9 @@ def fonction_a_integrer(teta: float, x_tilde: float, y_tilde: float, froude_nbr:
 
 
 def surface_displacement(x_tilde: float, y_tilde: float, froude_nbr: float) -> float:
+    # rotate everything by 90°
+    x_tilde, y_tilde = y_tilde, x_tilde
+
     value, _ = integ.quad(fonction_a_integrer,
                           a=-pi / 2,
                           b=pi / 2,
