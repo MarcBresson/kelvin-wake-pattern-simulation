@@ -49,7 +49,7 @@ def wake_simulation(
         max_y_tilde: float = 10,
         use_mask: bool = True,
         mask: np.ndarray = None,
-        progress_bar: tqdm.tqdm = tqdm.tqdm(),
+        progress_bar: tqdm.tqdm = "default",
         relative_vertical_offset: float = 0.05,
         compute_top_margin: bool = False
 ) -> np.ndarray:
@@ -80,7 +80,9 @@ def wake_simulation(
         provided to compute only the interesting areas, by default None.
     progress_bar : tqdm.tqdm, optional
         display a progress bar for the progress of the simulation.It is useful
-        as the simulation can take a significant time, by default tqdm.tqdm()
+        as the simulation can take a significant time, by default "default"
+        which corresponds to a tqdm.tqdm() instance (search for mutable
+        default argument in python for more info).
     relative_vertical_offset : float, optional
         relative space between the top and the singularity, by default 0.05
     compute_top_margin : bool, optional
@@ -126,6 +128,9 @@ def wake_simulation(
             blank_mask=(not use_mask),
             compute_top_margin=compute_top_margin
         )
+
+    if progress_bar == "default":
+        progress_bar = tqdm.tqdm()
 
     if progress_bar is not None:
         pixel_count = mask.sum()
