@@ -160,6 +160,7 @@ def compute_mask(
     image_height: int,
     mask_y_offset: int,
     cone_y_offset: float = 0.25,
+    outside_render_angle: float = 19.47,
     blank_mask: bool = False,
     compute_top_margin: bool = False
 ) -> np.ndarray:
@@ -182,6 +183,10 @@ def compute_mask(
         cone drawn by the wake is higher than the top of the frame
         for small froude number, so this parameter compensate for that,
         by default 0.25
+    outside_render_angle : float, optional
+        angle (in degree) above which the surface elevation is not
+        computed. This spare a lot of computational ressource and avoids
+        integral approximation, by default 19.47° (Kelvin angle)
     blank_mask : bool, optional
         to generate a mask full of ones, by default False
     compute_top_margin : bool, optional
@@ -200,7 +205,7 @@ def compute_mask(
         mask_y_offset = 0
 
     if not blank_mask:
-        outside_render_angle = 19.47 / 57.4
+        outside_render_angle = outside_render_angle / 57.4
 
         for x_mask in range(half_length):
             for y_mask in range(image_height):
