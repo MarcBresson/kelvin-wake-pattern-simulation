@@ -101,16 +101,16 @@ def wake_simulation(
                          "must have a value.")
 
     if image_height is None:
-        image_height = image_width / max_x_tilde * max_y_tilde
+        image_height = image_width / (max_x_tilde * 2) * max_y_tilde
 
     if image_width is None:
-        image_width = image_height / max_y_tilde * max_x_tilde
+        image_width = image_height / max_y_tilde * (max_x_tilde * 2)
 
     if max_x_tilde is None:
         max_x_tilde = image_width / image_height * max_y_tilde
 
     if max_y_tilde is None:
-        max_y_tilde = image_height / image_width * max_x_tilde
+        max_y_tilde = image_height / image_width * (max_x_tilde * 2)
 
     # to convert image coordinates to simulation coordinates.
     # the image will typically be 400*600 whereas the simulation
